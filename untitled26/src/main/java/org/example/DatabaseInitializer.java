@@ -1,0 +1,92 @@
+package org.example;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DatabaseInitializer {
+    private final ConnectionPool connectionPool;
+
+    public DatabaseInitializer(ConnectionPool connectionPool) {
+        this.connectionPool = connectionPool;
+    }
+
+    public void initializeDatabase() {
+        System.out.println("=== ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ ===");
+
+        Connection connection = null;
+        try {
+            connection = connectionPool.getConnection();
+
+            String createTableSQL = """
+                CREATE TABLE IF NOT EXISTS tasks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    completed BOOLEAN DEFAULT FALSE,
+                    due_date TEXT NOT NULL,  -- SQLite хранит даты как TEXT
+                    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+                    priority TEXT DEFAULT 'MEDIUM',
+                    category TEXT
+                )
+                """;
+
+            String createIndexSQL = "CREATE INDEX IF NOT EXISTS idx_due_date ON tasks(due_date)";
+            String createStatusIndexSQL = "CREATE INDEX IF NOT EXISTS idx_completed ON tasks(completed)";
+            String createPriorityIndexSQL = "CREATE INDEX IF NOT EXISTS idx_priority ON tasks(priority)";
+
+            try (Statement stmt = connection.createStatement()) {
+                stmt.execute(createTableSQL);
+                System.out.println("Таблица 'tasks' создана/проверена");
+
+                stmt.execute(createIndexSQL);
+                stmt.execute(createStatusIndexSQL);
+                stmt.execute(createPriorityIndexSQL);
+                System.out.println("Индексы созданы/проверены");
+
+                checkTableStructure(connection);
+
+            } catch (SQLException e) {
+                System.err.println("Ошибка при создании таблицы: " + e.getMessage());
+                e.printStackTrace();
+                throw e;
+            }
+
+            System.out.println("=== БАЗА ДАННЫХ ГОТОВА К РАБОТЕ ===");
+
+        } catch (SQLException e) {
+            System.err.println("Критическая ошибка инициализации БД: " + e.getMessage());
+            throw new RuntimeException("Не удалось инициализировать базу данных", e);
+        } finally {
+            if (connection != null) {
+                connectionPool.releaseConnection(connection);
+            }
+        }
+    }
+
+    private void checkTableStructure(Connection connection) {
+        try (Statement stmt = connection.createStatement()) {
+            var rs = stmt.executeQuery("PRAGMA table_info(tasks)");
+            System.out.println("\nСтруктура таблицы 'tasks':");
+            System.out.println("------------------------");
+            while (rs.next()) {
+                String name = rs.getString("name");
+                String type = rs.getString("type");
+                boolean notnull = rs.getBoolean("notnull");
+                String dfltValue = rs.getString("dflt_value");
+                System.out.printf("%-12s %-12s notnull:%-6s default:%s%n",
+                        name, type, notnull, dfltValue != null ? dfltValue : "NULL");
+            }
+
+            rs = stmt.executeQuery("SELECT COUNT(*) as count FROM tasks");
+            if (rs.next()) {
+                System.out.println("\nКоличество задач в базе: " + rs.getInt("count"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Ошибка при проверке структуры таблицы: " + e.getMessage());
+        }
+    }
+
+
+}

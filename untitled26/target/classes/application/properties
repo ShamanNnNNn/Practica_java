@@ -1,0 +1,19 @@
+# Database
+database.url=jdbc:sqlite:database/tasks.db
+database.pool.size=10
+
+# Application
+app.name=Task Manager
+app.version=1.0.0
+app.max.tasks=1000
+app.refresh.interval=30000
+
+# UI Settings
+ui.table.page.size=50
+ui.auto.refresh=true
+ui.show.notifications=true
+
+# Memory Management
+memory.max.heap=512m
+memory.init.heap=128m
+memory.gc.interval=60000

@@ -1,0 +1,9 @@
+org/example/Main.class
+org/example/Task.class
+org/example/TaskService.class
+org/example/Task$Priority.class
+org/example/TaskView.class
+org/example/TaskDaoImpl.class
+org/example/TaskDao.class
+org/example/DatabaseInitializer.class
+org/example/ConnectionPool.class
