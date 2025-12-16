@@ -1,0 +1,6 @@
+org/example/TaskServiceTest.class
+org/example/TaskDaoImplIntegrationTest$1.class
+org/example/TaskDaoImplIntegrationTest.class
+org/example/TaskTest.class
+org/example/TaskServiceTest$InMemoryTaskDao.class
+org/example/ConnectionPoolTest.class

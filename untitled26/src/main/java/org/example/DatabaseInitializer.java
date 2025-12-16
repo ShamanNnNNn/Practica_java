@@ -12,7 +12,6 @@ public class DatabaseInitializer {
     }
 
     public void initializeDatabase() {
-        System.out.println("=== ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ ===");
 
         Connection connection = null;
         try {
@@ -37,26 +36,21 @@ public class DatabaseInitializer {
 
             try (Statement stmt = connection.createStatement()) {
                 stmt.execute(createTableSQL);
-                System.out.println("Таблица 'tasks' создана/проверена");
 
                 stmt.execute(createIndexSQL);
                 stmt.execute(createStatusIndexSQL);
                 stmt.execute(createPriorityIndexSQL);
-                System.out.println("Индексы созданы/проверены");
 
                 checkTableStructure(connection);
 
             } catch (SQLException e) {
-                System.err.println("Ошибка при создании таблицы: " + e.getMessage());
                 e.printStackTrace();
                 throw e;
             }
 
-            System.out.println("=== БАЗА ДАННЫХ ГОТОВА К РАБОТЕ ===");
 
         } catch (SQLException e) {
-            System.err.println("Критическая ошибка инициализации БД: " + e.getMessage());
-            throw new RuntimeException("Не удалось инициализировать базу данных", e);
+            throw new RuntimeException(e);
         } finally {
             if (connection != null) {
                 connectionPool.releaseConnection(connection);
@@ -67,8 +61,6 @@ public class DatabaseInitializer {
     private void checkTableStructure(Connection connection) {
         try (Statement stmt = connection.createStatement()) {
             var rs = stmt.executeQuery("PRAGMA table_info(tasks)");
-            System.out.println("\nСтруктура таблицы 'tasks':");
-            System.out.println("------------------------");
             while (rs.next()) {
                 String name = rs.getString("name");
                 String type = rs.getString("type");
@@ -80,11 +72,11 @@ public class DatabaseInitializer {
 
             rs = stmt.executeQuery("SELECT COUNT(*) as count FROM tasks");
             if (rs.next()) {
-                System.out.println("\nКоличество задач в базе: " + rs.getInt("count"));
+                System.out.println(rs.getInt("count"));
             }
 
         } catch (SQLException e) {
-            System.err.println("Ошибка при проверке структуры таблицы: " + e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 
